@@ -140,15 +140,8 @@ class CurlRequest
      */
     protected static function processRequest($ch)
     {
-        # Check for 429 leaky bucket error
-        while(1) {
-             $output = curl_exec($ch);
-             self::$lastHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-             if(self::$lastHttpCode != 429) {
-                break; 
-             } 
-             usleep(500000);
-        }
+        $output = curl_exec($ch);
+        self::$lastHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     
         if (curl_errno($ch)) {
             throw new Exception\CurlException(curl_errno($ch) . ' : ' . curl_error($ch));
