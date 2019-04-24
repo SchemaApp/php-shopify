@@ -145,7 +145,7 @@ class CurlRequest
 
         $output = null;
         while(1) {
-            Redis::throttle($host)->allow(2)->every(1)->then(function () use (&$ch, &$output) {
+            Redis::throttle($host)->allow(2)->every(2)->then(function () use (&$ch, &$output) {
                 $output = curl_exec($ch);
                 self::$lastHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             },
