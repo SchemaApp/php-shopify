@@ -8,6 +8,7 @@
 namespace PHPShopify;
 
 
+use Illuminate\Support\Facades\Redis;
 use PHPShopify\Exception\CurlException;
 
 /*
