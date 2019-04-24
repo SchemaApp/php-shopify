@@ -71,7 +71,7 @@ class CurlRequest
         //Initialize the Curl resource
         $ch = self::init($url, $httpHeaders);
 
-        return self::processRequest($ch);
+        return self::processRequest($ch, $url);
     }
 
     /**
@@ -90,7 +90,7 @@ class CurlRequest
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
 
-        return self::processRequest($ch);
+        return self::processRequest($ch, $url);
     }
 
     /**
@@ -109,7 +109,7 @@ class CurlRequest
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
 
-        return self::processRequest($ch);
+        return self::processRequest($ch, $url);
     }
 
     /**
@@ -126,7 +126,7 @@ class CurlRequest
         //set the request type
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
 
-        return self::processRequest($ch);
+        return self::processRequest($ch, $url);
     }
 
     /**
@@ -138,10 +138,25 @@ class CurlRequest
      *
      * @return string
      */
-    protected static function processRequest($ch)
+    protected static function processRequest($ch, $url)
     {
-        $output = curl_exec($ch);
-        self::$lastHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $split = parse_url($url);
+        $host = $split['host'];
+
+        $output = null;
+        while(1) {
+            Redis::throttle($host)->allow(2)->every(1)->then(function () use (&$ch, &$output) {
+                $output = curl_exec($ch);
+                self::$lastHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            },
+            
+            function () {
+            });
+
+            if (isset($output)) {
+                break;
+            }
+        }
     
         if (curl_errno($ch)) {
             throw new Exception\CurlException(curl_errno($ch) . ' : ' . curl_error($ch));
@@ -149,7 +164,6 @@ class CurlRequest
 
         // close curl resource to free up system resources
         curl_close($ch);
-
         return $output;
     }
     
