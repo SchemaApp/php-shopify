@@ -152,6 +152,7 @@ class CurlRequest
             },
             
             function () {
+                usleep(250000);
             });
 
             if (isset($output)) {
