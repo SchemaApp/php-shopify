@@ -152,7 +152,7 @@ class CurlRequest
             },
             
             function () {
-                usleep(250000);
+                throw new Exception\ThrottleException("Could not get lock on API resource in Redis.");
             });
 
             if (isset($output)) {
