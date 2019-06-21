@@ -145,20 +145,15 @@ class CurlRequest
         $host = $split['host'];
 
         $output = null;
-        while(1) {
-            Redis::throttle($host)->allow(2)->every(2)->then(function () use (&$ch, &$output) {
-                $output = curl_exec($ch);
-                self::$lastHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            },
-            
-            function () {
-                throw new Exception\ThrottleException("Could not get lock on API resource in Redis.");
-            });
 
-            if (isset($output)) {
-                break;
-            }
-        }
+        Redis::throttle($host)->allow(2)->every(2)->then(function () use (&$ch, &$output) {
+            $output = curl_exec($ch);
+            self::$lastHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        },
+        
+        function () {
+            throw new Exception\ThrottleException("Could not get lock on API resource in Redis.");
+        });
     
         if (curl_errno($ch)) {
             throw new Exception\CurlException(curl_errno($ch) . ' : ' . curl_error($ch));
