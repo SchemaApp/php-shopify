@@ -143,6 +143,11 @@ class ShopifySDK
     public static $timeAllowedForEachApiCall = .5;
 
     /**
+     * @var string Default Shopify API version
+     */
+    public static $defaultApiVersion = '2022-07';
+
+    /**
      * Shop / API configurations
      *
      * @var array
@@ -223,8 +228,7 @@ class ShopifySDK
     public function __construct($config = array())
     {
         if(!empty($config)) {
-            $this->config = $config;
-            $this->setAdminUrl();
+            ShopifySDK::config($config);
         }
     }
 
@@ -285,6 +289,13 @@ class ShopifySDK
      */
     public function config($config)
     {
+        /**
+         * Reset config to it's initial values
+         */
+        $this->config = array(
+            'ApiVersion' => self::$defaultApiVersion,
+        );
+        
         foreach ($config as $key => $value) {
             $this->config[$key] = $value;
         }
@@ -313,6 +324,7 @@ class ShopifySDK
 
         //Remove https:// and trailing slash (if provided)
         $shopUrl = preg_replace('#^https?://|/$#', '', $shopUrl);
+        $apiVersion = $this->config['ApiVersion'];
 
         if(isset($this->config['ApiKey']) && isset($this->config['Password'])) {
             $apiKey = $this->config['ApiKey'];
@@ -323,6 +335,7 @@ class ShopifySDK
         }
 
         $this->config['AdminUrl'] = $adminUrl;
+        $this->config['ApiUrl'] = $adminUrl . "api/$apiVersion/";
 
         return $adminUrl;
     }
@@ -334,6 +347,15 @@ class ShopifySDK
      */
     public function getAdminUrl() {
         return $this->config['AdminUrl'];
+    }
+
+    /**
+     * Get the api url of the configured shop
+     *
+     * @return string
+     */
+    public function getApiUrl() {
+        return $this->config['ApiUrl'];
     }
 
     /**
